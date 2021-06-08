@@ -188,39 +188,39 @@ extension OCKContactStore {
 }
 
 extension OCKReadableTaskStore {
-    func fetchTasksAndWait(query: OCKTaskQuery = OCKTaskQuery()) throws -> [Task] {
+    func fetchTasksAndWait(query: OCKTaskQuery = OCKTaskQuery()) throws -> [ATask] {
         try performSynchronously { self.fetchTasks(query: query, callbackQueue: backgroundQueue, completion: $0) }
     }
 }
 
 extension OCKTaskStore {
     @discardableResult
-    func addTasksAndWait(_ tasks: [Task]) throws -> [Task] {
+    func addTasksAndWait(_ tasks: [ATask]) throws -> [ATask] {
         try performSynchronously { self.addTasks(tasks, callbackQueue: backgroundQueue, completion: $0) }
     }
 
     @discardableResult
-    func addTaskAndWait(_ task: Task) throws -> Task {
+    func addTaskAndWait(_ task: ATask) throws -> ATask {
         try performSynchronously { self.addTask(task, callbackQueue: backgroundQueue, completion: $0) }
     }
 
     @discardableResult
-    func updateTasksAndWait(_ tasks: [Task]) throws -> [Task] {
+    func updateTasksAndWait(_ tasks: [ATask]) throws -> [ATask] {
         try performSynchronously { self.updateTasks(tasks, callbackQueue: backgroundQueue, completion: $0) }
     }
 
     @discardableResult
-    func updateTaskAndWait(_ task: Task) throws -> Task {
+    func updateTaskAndWait(_ task: ATask) throws -> ATask {
         try performSynchronously { self.updateTask(task, callbackQueue: backgroundQueue, completion: $0) }
     }
 
     @discardableResult
-    func deleteTasksAndWait(_ tasks: [Task]) throws -> [Task] {
+    func deleteTasksAndWait(_ tasks: [ATask]) throws -> [ATask] {
         try performSynchronously { self.deleteTasks(tasks, callbackQueue: backgroundQueue, completion: $0) }
     }
 
     @discardableResult
-    func deleteTaskAndWait(_ task: Task) throws -> Task {
+    func deleteTaskAndWait(_ task: ATask) throws -> ATask {
         try performSynchronously { self.deleteTask(task, callbackQueue: backgroundQueue, completion: $0) }
     }
 }
@@ -264,11 +264,11 @@ extension OCKOutcomeStore {
 }
 
 extension OCKReadOnlyEventStore {
-    func fetchEventsAndWait(taskID: String, query: OCKEventQuery) throws -> [OCKEvent<Task, Outcome>] {
+    func fetchEventsAndWait(taskID: String, query: OCKEventQuery) throws -> [OCKEvent<ATask, Outcome>] {
         try performSynchronously { self.fetchEvents(taskID: taskID, query: query, callbackQueue: backgroundQueue, completion: $0) }
     }
 
-    func fetchEventAndWait(forTask task: Task, occurrence: Int) throws -> Event {
+    func fetchEventAndWait(forTask task: ATask, occurrence: Int) throws -> Event {
         try performSynchronously { self.fetchEvent(forTask: task, occurrence: occurrence, callbackQueue: backgroundQueue, completion: $0) }
     }
 

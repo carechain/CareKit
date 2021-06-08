@@ -31,7 +31,7 @@ import Foundation
 
 /// Any store from which a single type conforming to `OCKAnyTask` can be queried is considered a `OCKReadableTaskStore`.
 public protocol OCKReadableTaskStore: OCKAnyReadOnlyTaskStore {
-    associatedtype Task: OCKAnyTask & Equatable
+    associatedtype ATask: OCKAnyTask & Equatable
 
     /// `fetchTasks` asynchronously retrieves an array of tasks from the store.
     ///
@@ -39,7 +39,7 @@ public protocol OCKReadableTaskStore: OCKAnyReadOnlyTaskStore {
     ///   - query: A query used to constrain the values that will be fetched.
     ///   - callbackQueue: The queue that the completion closure should be called on. In most cases this should be the main queue.
     ///   - completion: A callback that will fire on the provided callback queue.
-    func fetchTasks(query: OCKTaskQuery, callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<[Task]>)
+    func fetchTasks(query: OCKTaskQuery, callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<[ATask]>)
 
     // MARK: Singular Methods - Implementation Provided
 
@@ -50,7 +50,7 @@ public protocol OCKReadableTaskStore: OCKAnyReadOnlyTaskStore {
     ///   - id: A unique user-defined identifier
     ///   - callbackQueue: The queue that the completion closure should be called on. In most cases this should be the main queue.
     ///   - completion: A callback that will fire on the provided callback queue.
-    func fetchTask(withID id: String, callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<Task>)
+    func fetchTask(withID id: String, callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<ATask>)
 }
 
 /// Any store that can perform read and write operations on a single type conforming to `OCKAnyTask` is considered an `OCKTaskStore`.
@@ -62,7 +62,7 @@ public protocol OCKTaskStore: OCKReadableTaskStore, OCKAnyTaskStore {
     ///   - tasks: An array of tasks to be added to the store.
     ///   - callbackQueue: The queue that the completion closure should be called on. In most cases this should be the main queue.
     ///   - completion: A callback that will fire on the provided callback queue.
-    func addTasks(_ tasks: [Task], callbackQueue: DispatchQueue, completion: OCKResultClosure<[Task]>?)
+    func addTasks(_ tasks: [ATask], callbackQueue: DispatchQueue, completion: OCKResultClosure<[ATask]>?)
 
     /// `updateTasks` asynchronously updates an array of tasks in the store.
     ///
@@ -70,7 +70,7 @@ public protocol OCKTaskStore: OCKReadableTaskStore, OCKAnyTaskStore {
     ///   - tasks: An array of tasks to be updated. The tasks must already exist in the store.
     ///   - callbackQueue: The queue that the completion closure should be called on. In most cases this should be the main queue.
     ///   - completion: A callback that will fire on the provided callback queue.
-    func updateTasks(_ tasks: [Task], callbackQueue: DispatchQueue, completion: OCKResultClosure<[Task]>?)
+    func updateTasks(_ tasks: [ATask], callbackQueue: DispatchQueue, completion: OCKResultClosure<[ATask]>?)
 
     /// `deleteTasks` asynchronously deletes an array of tasks from the store.
     ///
@@ -78,7 +78,7 @@ public protocol OCKTaskStore: OCKReadableTaskStore, OCKAnyTaskStore {
     ///   - tasks: An array of tasks to be deleted. The tasks must exist in the store.
     ///   - callbackQueue: The queue that the completion closure should be called on. In most cases this should be the main queue.
     ///   - completion: A callback that will fire on the provided callback queue.
-    func deleteTasks(_ tasks: [Task], callbackQueue: DispatchQueue, completion: OCKResultClosure<[Task]>?)
+    func deleteTasks(_ tasks: [ATask], callbackQueue: DispatchQueue, completion: OCKResultClosure<[ATask]>?)
 
     // MARK: Implementation Provided
 
@@ -88,7 +88,7 @@ public protocol OCKTaskStore: OCKReadableTaskStore, OCKAnyTaskStore {
     ///   - task: A task to be added to the store.
     ///   - callbackQueue: The queue that the completion closure should be called on. In most cases this should be the main queue.
     ///   - completion: A callback that will fire on the provided callback queue.
-    func addTask(_ task: Task, callbackQueue: DispatchQueue, completion: OCKResultClosure<Task>?)
+    func addTask(_ task: ATask, callbackQueue: DispatchQueue, completion: OCKResultClosure<ATask>?)
 
     /// `updateTask` asynchronously updates a task in the store.
     ///
@@ -96,7 +96,7 @@ public protocol OCKTaskStore: OCKReadableTaskStore, OCKAnyTaskStore {
     ///   - contact: A task to be updated. The task must already exist in the store.
     ///   - callbackQueue: The queue that the completion closure should be called on. In most cases this should be the main queue.
     ///   - completion: A callback that will fire on the provided callback queue.
-    func updateTask(_ task: Task, callbackQueue: DispatchQueue, completion: OCKResultClosure<Task>?)
+    func updateTask(_ task: ATask, callbackQueue: DispatchQueue, completion: OCKResultClosure<ATask>?)
 
     /// `deleteTask` asynchronously deletes a task from the store.
     ///
@@ -104,13 +104,13 @@ public protocol OCKTaskStore: OCKReadableTaskStore, OCKAnyTaskStore {
     ///   - task: A task to be deleted. The task must exist in the store.
     ///   - callbackQueue: The queue that the completion closure should be called on. In most cases this should be the main queue.
     ///   - completion: A callback that will fire on the provided callback queue.
-    func deleteTask(_ task: Task, callbackQueue: DispatchQueue, completion: OCKResultClosure<Task>?)
+    func deleteTask(_ task: ATask, callbackQueue: DispatchQueue, completion: OCKResultClosure<ATask>?)
 }
 
 // MARK: Singular Methods for OCKReadableTaskStore
 
 public extension OCKReadableTaskStore {
-    func fetchTask(withID id: String, callbackQueue: DispatchQueue = .main, completion: @escaping OCKResultClosure<Task>) {
+    func fetchTask(withID id: String, callbackQueue: DispatchQueue = .main, completion: @escaping OCKResultClosure<ATask>) {
         var query = OCKTaskQuery(for: Date())
         query.sortDescriptors = [.effectiveDate(ascending: true)]
         query.ids = [id]
@@ -124,17 +124,17 @@ public extension OCKReadableTaskStore {
 // MARK: Singular Methods for OCKTaskStore
 
 public extension OCKTaskStore {
-    func addTask(_ task: Task, callbackQueue: DispatchQueue = .main, completion: OCKResultClosure<Task>? = nil) {
+    func addTask(_ task: ATask, callbackQueue: DispatchQueue = .main, completion: OCKResultClosure<ATask>? = nil) {
         addTasks([task], callbackQueue: callbackQueue, completion:
             chooseFirst(then: completion, replacementError: .addFailed(reason: "Failed to add task")))
     }
 
-    func updateTask(_ task: Task, callbackQueue: DispatchQueue = .main, completion: OCKResultClosure<Task>? = nil) {
+    func updateTask(_ task: ATask, callbackQueue: DispatchQueue = .main, completion: OCKResultClosure<ATask>? = nil) {
         updateTasks([task], callbackQueue: callbackQueue, completion:
             chooseFirst(then: completion, replacementError: .updateFailed(reason: "Failed to update task")))
     }
 
-    func deleteTask(_ task: Task, callbackQueue: DispatchQueue = .main, completion: OCKResultClosure<Task>? = nil) {
+    func deleteTask(_ task: ATask, callbackQueue: DispatchQueue = .main, completion: OCKResultClosure<ATask>? = nil) {
         deleteTasks([task], callbackQueue: callbackQueue, completion:
             chooseFirst(then: completion, replacementError: .deleteFailed(reason: "Failed to delete task")))
     }
@@ -153,8 +153,8 @@ public extension OCKReadableTaskStore {
 
 public extension OCKTaskStore {
     func addAnyTasks(_ tasks: [OCKAnyTask], callbackQueue: DispatchQueue, completion: OCKResultClosure<[OCKAnyTask]>?) {
-        guard let tasks = tasks as? [Task] else {
-            let message = "Failed to add tasks. Not all tasks were of the correct type, \(Task.self)."
+        guard let tasks = tasks as? [ATask] else {
+            let message = "Failed to add tasks. Not all tasks were of the correct type, \(ATask.self)."
             callbackQueue.async { completion?(.failure(.addFailed(reason: message))) }
             return
         }
@@ -162,8 +162,8 @@ public extension OCKTaskStore {
     }
 
     func updateAnyTasks(_ tasks: [OCKAnyTask], callbackQueue: DispatchQueue, completion: OCKResultClosure<[OCKAnyTask]>?) {
-        guard let tasks = tasks as? [Task] else {
-            let message = "Failed to update tasks. Not all tasks were of the correct type, \(Task.self)."
+        guard let tasks = tasks as? [ATask] else {
+            let message = "Failed to update tasks. Not all tasks were of the correct type, \(ATask.self)."
             callbackQueue.async { completion?(.failure(.updateFailed(reason: message))) }
             return
         }
@@ -171,8 +171,8 @@ public extension OCKTaskStore {
     }
 
     func deleteAnyTasks(_ tasks: [OCKAnyTask], callbackQueue: DispatchQueue, completion: OCKResultClosure<[OCKAnyTask]>?) {
-        guard let tasks = tasks as? [Task] else {
-            let message = "Failed to delete tasks. Not all tasks were of the correct type, \(Task.self)."
+        guard let tasks = tasks as? [ATask] else {
+            let message = "Failed to delete tasks. Not all tasks were of the correct type, \(ATask.self)."
             callbackQueue.async { completion?(.failure(.deleteFailed(reason: message))) }
             return
         }

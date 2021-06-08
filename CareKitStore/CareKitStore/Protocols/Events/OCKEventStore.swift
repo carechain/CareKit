@@ -32,7 +32,7 @@ import Foundation
 
 /// Any store from which a single event type can be queried is considered a `OCKReadOnlyEventStore`.
 public protocol OCKReadOnlyEventStore: OCKAnyReadOnlyEventStore, OCKReadableTaskStore, OCKReadableOutcomeStore {
-    typealias Event = OCKEvent<Task, Outcome>
+    typealias Event = OCKEvent<ATask, Outcome>
 
     // MARK: Implementation Provided when Task == OCKTask and Outcome == OCKOutcome
 
@@ -52,7 +52,7 @@ public protocol OCKReadOnlyEventStore: OCKAnyReadOnlyEventStore, OCKReadableTask
     /// - Parameter occurrence: The occurrence index of the desired event.
     /// - Parameter queue: The queue that the completion closure should be called on. In most cases this should be the main queue.
     /// - Parameter completion: A callback that will fire on the specified queue.
-    func fetchEvent(forTask task: Task, occurrence: Int, callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<Event>)
+    func fetchEvent(forTask task: ATask, occurrence: Int, callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<Event>)
 }
 
 /// Any store in which a single event type can be both queried and written is considered a `OCKEventStore`.
@@ -67,7 +67,7 @@ public extension OCKReadOnlyEventStore {
     }
 
     func fetchAnyEvent(forTask task: OCKAnyTask, occurrence: Int, callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<OCKAnyEvent>) {
-        guard let typedTask = task as? Task else {
+        guard let typedTask = task as? ATask else {
             callbackQueue.async {
                 let message = "Store of type \(type(of: self)) cannot fetch event with task type \(type(of: task))."
                 completion(.failure(.fetchFailed(reason: message)))
@@ -80,12 +80,12 @@ public extension OCKReadOnlyEventStore {
 
 // MARK: OCKReadOnlyEventStore Implementations for Task: OCKAnyVersionableTask
 
-public extension OCKReadOnlyEventStore where Task: OCKAnyVersionableTask {
+public extension OCKReadOnlyEventStore where ATask: OCKAnyVersionableTask {
 
     // MARK: Events
 
     func fetchEvents(taskID: String, query: OCKEventQuery, callbackQueue: DispatchQueue = .main,
-                     completion: @escaping OCKResultClosure<[OCKEvent<Task, Outcome>]>) {
+                     completion: @escaping OCKResultClosure<[OCKEvent<ATask, Outcome>]>) {
         var taskQuery = OCKTaskQuery()
         taskQuery.dateInterval = query.dateInterval
         taskQuery.limit = 1
@@ -101,13 +101,13 @@ public extension OCKReadOnlyEventStore where Task: OCKAnyVersionableTask {
         }, replacementError: .fetchFailed(reason: "No task with ID matching query")))
     }
 
-    func fetchEvent(forTask task: Task, occurrence: Int, callbackQueue: DispatchQueue = .main, completion: @escaping OCKResultClosure<Event>) {
+    func fetchEvent(forTask task: ATask, occurrence: Int, callbackQueue: DispatchQueue = .main, completion: @escaping OCKResultClosure<Event>) {
         fetchEvent(withTaskVersion: task.uuid, occurrenceIndex: occurrence, callbackQueue: callbackQueue, completion: completion)
     }
 
     private func fetchEvent(withTaskVersion taskVersionUUID: UUID, occurrenceIndex: Int,
-                            callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<OCKEvent<Task, Outcome>>) {
-        fetchTask(withVersion: taskVersionUUID, callbackQueue: callbackQueue, completion: { (result: Result<Task, OCKStoreError>) in
+                            callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<OCKEvent<ATask, Outcome>>) {
+        fetchTask(withVersion: taskVersionUUID, callbackQueue: callbackQueue, completion: { (result: Result<ATask, OCKStoreError>) in
             switch result {
             case .failure(let error): completion(.failure(.fetchFailed(reason: "Failed to fetch task. \(error.localizedDescription)")))
             case .success(let task):
@@ -133,7 +133,7 @@ public extension OCKReadOnlyEventStore where Task: OCKAnyVersionableTask {
     }
 
     // This is a recursive async function that gets all events within a query for a given task, examining all past versions of the task
-    private func fetchEvents(task: Task, query: OCKEventQuery, previousEvents: [Event],
+    private func fetchEvents(task: ATask, query: OCKEventQuery, previousEvents: [Event],
                              callbackQueue: DispatchQueue = .main, completion: @escaping (Result<[Event], OCKStoreError>) -> Void) {
         let start = max(task.effectiveDate, query.dateInterval.start)
         let scheduledEndDate = task.schedule.endDate()
@@ -179,7 +179,7 @@ public extension OCKReadOnlyEventStore where Task: OCKAnyVersionableTask {
         })
     }
 
-    private func fetchNextValidPreviousVersion(for task: Task, callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<Task?>) {
+    private func fetchNextValidPreviousVersion(for task: ATask, callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<ATask?>) {
 
         guard let versionID = task.previousVersionUUIDs.first else {
             completion(.success(nil))
@@ -202,17 +202,17 @@ public extension OCKReadOnlyEventStore where Task: OCKAnyVersionableTask {
         }
     }
 
-    private func fetchTask(withVersion uuid: UUID, callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<Task>) {
+    private func fetchTask(withVersion uuid: UUID, callbackQueue: DispatchQueue, completion: @escaping OCKResultClosure<ATask>) {
         var query = OCKTaskQuery()
         query.uuids = [uuid]
         fetchTasks(query: query, callbackQueue: callbackQueue, completion:
             chooseFirst(then: completion, replacementError: .fetchFailed(reason: "No task with UUID: \(uuid)")))
     }
 
-    private func join(task: Task, with outcomes: [Outcome], and scheduleEvents: [OCKScheduleEvent]) -> [OCKEvent<Task, Outcome>] {
+    private func join(task: ATask, with outcomes: [Outcome], and scheduleEvents: [OCKScheduleEvent]) -> [OCKEvent<ATask, Outcome>] {
         guard !scheduleEvents.isEmpty else { return [] }
         let offset = scheduleEvents[0].occurrence
-        var events = scheduleEvents.map { OCKEvent<Task, Outcome>(task: task, outcome: nil, scheduleEvent: $0) }
+        var events = scheduleEvents.map { OCKEvent<ATask, Outcome>(task: task, outcome: nil, scheduleEvent: $0) }
         for outcome in outcomes {
             events[outcome.taskOccurrenceIndex - offset].outcome = outcome
         }

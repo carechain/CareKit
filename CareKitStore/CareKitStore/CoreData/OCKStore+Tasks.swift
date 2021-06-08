@@ -55,8 +55,8 @@ extension OCKStore {
         }
     }
 
-    public func addTasks(_ tasks: [Task], callbackQueue: DispatchQueue = .main,
-                         completion: ((Result<[Task], OCKStoreError>) -> Void)? = nil) {
+    public func addTasks(_ tasks: [ATask], callbackQueue: DispatchQueue = .main,
+                         completion: ((Result<[ATask], OCKStoreError>) -> Void)? = nil) {
         transaction(inserts: tasks, updates: [], deletes: []) { result in
             callbackQueue.async {
                 completion?(result.map(\.inserts))
@@ -64,8 +64,8 @@ extension OCKStore {
         }
     }
 
-    public func updateTasks(_ tasks: [Task], callbackQueue: DispatchQueue = .main,
-                            completion: ((Result<[Task], OCKStoreError>) -> Void)? = nil) {
+    public func updateTasks(_ tasks: [ATask], callbackQueue: DispatchQueue = .main,
+                            completion: ((Result<[ATask], OCKStoreError>) -> Void)? = nil) {
         transaction(
             inserts: [], updates: tasks, deletes: [],
             preInsertValidate: { try self.confirmUpdateWillNotCauseDataLoss(tasks: tasks) }) { result in
@@ -76,8 +76,8 @@ extension OCKStore {
         }
     }
 
-    public func deleteTasks(_ tasks: [Task], callbackQueue: DispatchQueue = .main,
-                            completion: ((Result<[Task], OCKStoreError>) -> Void)? = nil) {
+    public func deleteTasks(_ tasks: [ATask], callbackQueue: DispatchQueue = .main,
+                            completion: ((Result<[ATask], OCKStoreError>) -> Void)? = nil) {
         transaction(inserts: [], updates: [], deletes: tasks) { result in
             callbackQueue.async {
                 completion?(result.map(\.deletes))
@@ -96,7 +96,7 @@ extension OCKStore {
     // Throws an error when updating to V3 from V2 if V1 has outcomes after `x`.
     // Throws an error when updating to V3 from V2 if V2 has any outcomes.
     // Does not throw when updating to V3 from V2 if V1 has outcomes before `x`.
-    private func confirmUpdateWillNotCauseDataLoss(tasks: [Task]) throws {
+    private func confirmUpdateWillNotCauseDataLoss(tasks: [ATask]) throws {
         let request = NSFetchRequest<OCKCDTask>(entityName: OCKCDTask.entity().name!)
         request.predicate = OCKCDTask.headerPredicate(tasks)
         let heads = try context.fetch(request)
